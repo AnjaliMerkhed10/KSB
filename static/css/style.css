@@ -520,22 +520,15 @@ input:checked+.slider:before {
 
 
 .card {
-    /* border-radius: 0px 0px 0px 0px;
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    min-width: 10px; */
-    /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06); */
-
-    /* Right side border only */
-
     justify-content: center;
     align-items: center;
     text-align: center;
 
     transition: 0.3s;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 10px;
 }
 
 
@@ -640,11 +633,10 @@ input:checked+.slider:before {
 
 .card99 {
 
-
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    padding: 50px;
+    padding: 20px;
     width: 100%;
     box-sizing: border-box;
 }
