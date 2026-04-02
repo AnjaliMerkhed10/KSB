@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" href="../static/img/evoluzn_title_logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/css/style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../static/js/chart_cdn.js"> </script>
+    <script src="../static/js/hammer.js"> </script>
+    <script src="../static/js/plugin.js"> </script>
+    <style>
+        /* ── Modal Overlay ─────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ── Modal Box ─────────────────────────────────────────────── */
+        .modal-box {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            transform: translateY(24px) scale(0.97);
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0) scale(1);
+        }
+
+        /* ── Modal Header ──────────────────────────────────────────── */
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: 0.3px;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: #f0f0f0;
+            color: #555;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e0e0e0;
+        }
+
+        /* ── Section Label ─────────────────────────────────────────── */
+        .modal-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 10px;
+            margin-top: 18px;
+        }
+
+        .modal-section-label:first-of-type {
+            margin-top: 0;
+        }
+
+        /* ── Input Grid ────────────────────────────────────────────── */
+        .modal-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .modal-grid.col2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .modal-grid.col3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 0.7rem;
+            color: #999;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .modal-field input[type="number"] {
+            width: 100%;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            color: #1a1a2e;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+
+        .modal-field input[type="number"]:focus {
+            border-color: #2563eb;
+            background: #fff;
+        }
+
+        /* ── Scheduling Toggle ─────────────────────────────────────── */
+        .sched-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            border: 1.5px solid #e5e7eb;
+            margin-bottom: 4px;
+        }
+
+        .sched-toggle-label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .sched-toggle-label small {
+            display: block;
+            font-size: 0.7rem;
+            color: #aaa;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        /* ── Reuse your existing .switch .slider ─── */
+        /* (already in your CSS — no changes needed) */
+
+        /* ── Scheduling time fields collapsible ─── */
+        .sched-time-fields {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s;
+            margin-top: 0;
+        }
+
+        .sched-time-fields.open {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 14px;
+        }
+
+        .on-label {
+            color: #16a34a;
+            font-weight: 700;
+        }
+
+        .off-label {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        /* ── Submit Button ─────────────────────────────────────────── */
+        .modal-btn {
+            width: 100%;
+            padding: 13px;
+            margin-top: 22px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .modal-btn:active {
+            transform: scale(0.98);
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .modal-btn.blue {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .modal-btn.green {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        /* ── Last Set Info ─────────────────────────────────────────── */
+        .modal-last-set {
+            font-size: 0.71rem;
+            color: #aaa;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* ── Toast ─────────────────────────────────────────────────── */
+        #modalToast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(70px);
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+            white-space: nowrap;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        #modalToast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #modalToast .t-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        #modalToast.success .t-dot {
+            background: #22c55e;
+        }
+
+        #modalToast.error .t-dot {
+            background: #ef4444;
+        }
+    </style>
+
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            /* ⬅️ increased */
+            height: 36px;
+            /* ⬅️ increased */
+            margin-left: 10px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+
+        }
+
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 28px;
+            width: 28px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(34px);
+            /* ⬅️ adjusted */
+        }
+    </style>
+    <!-- <style>
+        /* Input Style */
+        .ksb_input {
+            width: 160px;
+            padding: 12px 15px;
+            border: 2px solid #2f7df6;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #000;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s ease;
+        }
+
+        /* Placeholder */
+        .ksb_input::placeholder {
+            color: #9ca3af;
+        }
+
+        /* Focus Effect */
+        .ksb_input:focus {
+            border-color: #2f7df6;
+            box-shadow: 0 0 10px rgba(47, 125, 246, 0.6);
+            transform: scale(1.03);
+        }
+
+        /* Hover Effect */
+        .ksb_input:hover {
+            border-color: #5a9cff;
+        }
+    </style> -->
+    <!-- <style>
+        .ksb_popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .ksb_box {
+            margin-top: 100px;
+            background: #fff;
+            padding: 20px;
+            margin: 100px auto;
+            width: 400px;
+            height: 260px;
+            border-radius: 10px;
+        }
+    </style> -->
+
+    <!-- <style>
+        .ksb_card,
+        .ksb_btn {
+            display: none;
+        }
+    </style> -->
+
+    <style>
+        /* ── Threshold Popups — match modal style ────────────────── */
+        .ksb_popup {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            /* JS toggles this — don't change */
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* When JS sets display:block, we need flex centering */
+        .ksb_popup[style*="display: block"],
+        .ksb_popup[style*="display:block"] {
+            display: flex !important;
+        }
+
+        .ksb_box {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 28px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+            animation: modalPop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: translateY(20px) scale(0.96);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ── Input style — same as modal inputs ─────────────────── */
+        .ksb_input {
+            width: 100%;
+            border: 1.5px solid #e5e7eb !important;
+            border-radius: 8px !important;
+            padding: 10px 12px !important;
+            font-size: 0.95rem !important;
+            color: #1a1a2e !important;
+            outline: none;
+            background: #fafafa;
+            transition: border-color 0.2s;
+        }
+
+        .ksb_input:focus {
+            border-color: #2563eb !important;
+            background: #fff;
+        }
+    </style>
+
+
+    <style>
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="header">
+        <div class="pump-img">
+            <img src="../static/img/ksb-borewell-submersible-pump.jpg" width="100" height="50">
+        </div>
+        <h2 class="heading" style="color: #2a2a2a;">
+            Main Dashboard
+        </h2>
+
+        <button class="logout-btn" onclick="window.location.href='/logout'">
+            Logout
+            <img src="../static/img/logout (2).png" width="50px" height="50px" alt="">
+        </button>
+    </div>
+
+    <div class="alert-container" id="alerts">
+
+        {% for alert in alerts %}
+        <div class="alert-card" id="card-{{ loop.index }}" data-device="{{ alert.device }}" data-type="{{ alert.type }}"
+            data-time="{{ alert.time }}">
+
+            <div class="alert-header">
+
+                <div class="alert-icon">⚡</div>
+
+                <div class="alert-title-block">
+                    <p class="alert-type">{{ alert.type }} Alert</p>
+                    <p class="alert-device">Device: {{ alert.device }}</p>
+                </div>
+
+                <button class="close-btn" onclick="dismissAlert('card-{{ loop.index }}')">
+                    ✕
+                </button>
+
+            </div>
+
+            <div class="alert-body">
+
+                <p class="alert-message">
+
+                    {% if alert.limit_type == "min" %}
+                    {{ alert.type }} Under Detected Alert
+                    {% elif alert.limit_type == "max" %}
+                    {{ alert.type }} Over Detected Alert
+                    {% else %}
+                    {{ alert.type }} Threshold Crossed
+                    {% endif %}
+
+                </p>
+
+                <div class="alert-meta">
+
+                    {% for phase in alert.phases %}
+                    <div class="meta-chip">{{ phase }}</div>
+                    {% endfor %}
+
+                    <div class="meta-chip">{{ alert.time }}</div>
+
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+
+        <!-- Pump -->
+
+
+        <!-- Run Status -->
+        <div class=" card99">
+
+            <div class="card">
+                <div style="font-size:32px;"><img id="wifiIcon" src="../static/img/wifi_off.png" alt=""></div>
+                <div>
+                    <div><strong>RUN STATUS :</strong> <span class="status" id="runStatus">OFFLINE</span></div>
+                    <div style="margin-top: 4px;">
+                        <strong>RUN HOUR :</strong>
+                        <span id="runtime" style="color:#727272;">00 Hr 00 Min</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="font-size:32px;">
+                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                </div>
+                <div>
+                    <div><strong>ACTIVE POWER</strong></div>
+                    <div class="value">
+                        <span id="activePower">0</span>
+                        <span class="unit">kW</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div style="font-size:32px;">
+                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                </div>
+                <div>
+                    <div><strong>NUMBER OF STARTS</strong></div>
+                    <div class="value">
+                        <span id="starts">0</span>
+                        <span class="unit"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div style="font-size:32px;">
+                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                </div>
+                <div>
+                    <div><strong>APPERENT ENERGY</strong></div>
+                    <div class="value">
+                        <span id="apparentEnergy">0</span>
+                        <span class="unit">VAh</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Reactive Power -->
+            <div class="card">
+                <div style="font-size:32px;">
+                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                </div>
+                <div>
+                    <div><strong>REACTIVE POWER</strong></div>
+                    <div class="value">
+                        <span id="reactivePower">0</span>
+                        <span class="unit">VAR</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apparent Power -->
+            <div class="card">
+                <div style="font-size:32px;">
+                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                </div>
+                <div>
+                    <div><strong>APPARENT POWER</strong></div>
+                    <div class="value">
+                        <span id="apparentPower">0</span>
+                        <span class="unit">VA</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Power Factor -->
+            <div class="card">
+                <div style="font-size:32px;">
+                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                </div>
+                <div>
+                    <div><strong>POWER FACTOR</strong></div>
+                    <div class="value">
+                        <span id="powerFactor">0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pump -->
+            <div class="card">
+                <div>
+                    <div><strong>PUMP ON/OFF</strong></div>
+                    <label class="switch" style="margin-top: 10px;">
+                        <input type="checkbox" id="singleMasterSwitch" data-device="{{ deviceID }}" {{ 'checked' if
+                            load_status==1 else '' }}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <!-- MOdal -->
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!--  MODAL 1 — Set Time & Date                                -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalTimeDate">
+        <div class="modal-box">
+
+            <div class="modal-header">
+                <div class="modal-title">🕐 Set Time &amp; Date</div>
+                <button class="modal-close" onclick="closeModal('modalTimeDate')">✕</button>
+            </div>
+
+            <!-- Time -->
+            <div class="modal-section-label">Time (24-hour)</div>
+            <div class="modal-grid col2">
+                <div class="modal-field">
+                    <label>Hour (0–23)</label>
+                    <input value="{{ saved_hour }}" type=" number" id="td_hour" min="0" max="23" placeholder="HH">
+                </div>
+                <div class="modal-field">
+                    <label>Minute (0–59)</label>
+                    <input value="{{ saved_minute }}" type=" number" id="td_minute" min="0" max="59" placeholder="MM">
+                </div>
+            </div>
+
+            <!-- Date -->
+            <div class="modal-section-label" style="margin-top:16px;">Date</div>
+            <div class="modal-grid col3">
+                <div class="modal-field">
+                    <label>Day (1–31)</label>
+                    <input value="{{ saved_day }}" type=" number" id="td_day" min="1" max="31" placeholder="DD">
+                </div>
+                <div class="modal-field">
+                    <label>Month (1–12)</label>
+                    <input value="{{ saved_month }}" type="number" id="td_month" min="1" max="12" placeholder="MM">
+                </div>
+                <div class="modal-field">
+                    <label>Year</label>
+                    <input value="{{ saved_year }}" type="number" id="td_year" min="2000" max="2099" placeholder="YYYY">
+                </div>
+            </div>
+
+            <button class="modal-btn blue" id="btnSetTime">
+                Set Time &amp; Date
+            </button>
+
+            <div class="modal-last-set" id="timeLastSet">Not set yet</div>
+
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!--  MODAL 2 — Auto Scheduling                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalScheduling">
+        <div class="modal-box">
+
+            <div class="modal-header">
+                <div class="modal-title">📅 Auto Scheduling</div>
+                <button class="modal-close" onclick="closeModal('modalScheduling')">✕</button>
+            </div>
+
+            <!-- Enable toggle -->
+            <div class="sched-toggle-row">
+                <div class="sched-toggle-label">
+                    Enable Auto Scheduling
+                    <small>Automatically turn pump ON/OFF</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="schedToggle" {{ 'checked' if sched_enabled==1 else '' }}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- Collapsible time fields -->
+            <div class="sched-time-fields" id="schedFields">
+
+                <div class="modal-section-label on-label">🟢 Turn ON Time</div>
+                <div class="modal-grid col2">
+                    <div class="modal-field">
+                        <label>ON Hour (0–23)</label>
+                        <input value="{{ sched_on_hour }}" type="number" id="on_hour" min="0" max="23" placeholder="HH">
+                    </div>
+                    <div class="modal-field">
+                        <label>ON Minute (0–59)</label>
+                        <input value="{{ sched_on_minute }}" type="number" id="on_minute" min="0" max="59"
+                            placeholder="MM">
+                    </div>
+                </div>
+
+                <div class="modal-section-label off-label" style="margin-top:14px;">🔴 Turn OFF Time</div>
+                <div class="modal-grid col2">
+                    <div class="modal-field">
+                        <label>OFF Hour (0–23)</label>
+                        <input value="{{ sched_off_hour }}" type="number" id="off_hour" min="0" max="23"
+                            placeholder="HH">
+                    </div>
+                    <div class="modal-field">
+                        <label>OFF Minute (0–59)</label>
+                        <input value="{{ sched_off_minute }}" type="number" id="off_minute" min="0" max="59"
+                            placeholder="MM">
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="modal-btn green" id="btnSetSchedule">
+                Save Scheduling
+            </button>
+
+            <div class="modal-last-set" id="schedLastSet">Not set yet</div>
+
+        </div>
+    </div>
+
+
+    <!-- ── Toast ───────────────────────────────────────────────── -->
+    <div id="modalToast">
+        <div class="t-dot"></div>
+        <span id="toastText">Message</span>
+    </div>
+
+    <div class="wrapper" style="margin-top: 10px;">
+        <div class="excel">
+            <!-- Change your existing buttons to these -->
+            <button onclick="openModal('modalTimeDate')">Set Time&amp;Date</button>
+            <button onclick="openModal('modalScheduling')">Auto Scheduling</button>
+
+            <button class="ksb_card" id="ksb_current" onclick="ksbOpen('current')">Threshold Current</button>
+
+            <button class="ksb_card" id="ksb_voltage" onclick="ksbOpen('voltage')">Threshold Voltage</button>
+
+
+
+            <button class="ksb_card" id="ksb_power">Threshold Power</button>
+
+            <button class="download-btn" onclick="toggleDropdown()">
+                📥 Download
+            </button>
+
+            <div id="downloadOptions" class="download-dropdown">
+
+                <div class="option" onclick="downloadToday()">Today</div>
+
+                <div class="option">
+                    Selected Date
+                    <input type="date" id="selectedDate" onchange="downloadSelectedDate()">
+                </div>
+
+            </div>
+
+        </div>
+        <div class="dabba">
+            <select id="metricSelect" onchange="ksbUpdate()">
+                <option value="current" selected>Current</option>
+                <option value="voltage">Voltage</option>
+                <option value="power">Power</option>
+                <option value="energy">Energy</option>
+                <option value="frequency">Frequency</option>
+                <option value="power_factor">Power Factor</option>
+            </select>
+
+
+        </div>
+    </div>
+
+    <!-- ── Current Popup ── -->
+    <div id="ksb_current_popup" class="ksb_popup" onclick="ksbClose(event,'current')">
+        <div class="ksb_box">
+
+            <div class="modal-header">
+                <div class="modal-title">🔌 Current Threshold</div>
+                <button class="modal-close"
+                    onclick="ksbClose({target:document.getElementById('ksb_current_popup')},'current')">
+                    ✕
+                </button>
+            </div>
+
+            <div class="modal-section-label">Range (0 – 50 A)</div>
+
+            <div class="modal-grid col2">
+                <div class="modal-field">
+                    <label>Min (A)</label>
+                    <input id="cur_min" class="ksb_input" type="number" min="0" max="50" placeholder="e.g. 0">
+                </div>
+                <div class="modal-field">
+                    <label>Max (A)</label>
+                    <input id="cur_max" class="ksb_input" type="number" min="0" max="50" placeholder="e.g. 30">
+                </div>
+            </div>
+
+            <div id="cur_error" style="color:#ef4444;font-size:12px;text-align:center;margin-top:10px;min-height:16px;">
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:18px;">
+                <button onclick="saveThreshold('current')" id="cur_save_btn" class="modal-btn blue"
+                    style="margin-top:0;">
+                    💾 Save
+                </button>
+                <button onclick="ksbClose({target:document.getElementById('ksb_current_popup')},'current')"
+                    class="modal-btn" style="margin-top:0;background:#f0f0f0;color:#333;">
+                    Cancel
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ── Voltage Popup ── -->
+    <div id="ksb_voltage_popup" class="ksb_popup" onclick="ksbClose(event,'voltage')">
+        <div class="ksb_box">
+
+            <div class="modal-header">
+                <div class="modal-title">⚡ Voltage Threshold</div>
+                <button class="modal-close"
+                    onclick="ksbClose({target:document.getElementById('ksb_voltage_popup')},'voltage')">
+                    ✕
+                </button>
+            </div>
+
+            <div class="modal-section-label">Range (0 – 300 V)</div>
+
+            <div class="modal-grid col2">
+                <div class="modal-field">
+                    <label>Min (V)</label>
+                    <input id="vol_min" class="ksb_input" type="number" min="0" max="300" placeholder="e.g. 180">
+                </div>
+                <div class="modal-field">
+                    <label>Max (V)</label>
+                    <input id="vol_max" class="ksb_input" type="number" min="0" max="300" placeholder="e.g. 240">
+                </div>
+            </div>
+
+            <div id="vol_error" style="color:#ef4444;font-size:12px;text-align:center;margin-top:10px;min-height:16px;">
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:18px;">
+                <button onclick="saveThreshold('voltage')" id="vol_save_btn" class="modal-btn blue"
+                    style="margin-top:0;">
+                    💾 Save
+                </button>
+                <button onclick="ksbClose({target:document.getElementById('ksb_voltage_popup')},'voltage')"
+                    class="modal-btn" style="margin-top:0;background:#f0f0f0;color:#333;">
+                    Cancel
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div id="currentSection">
+        <!-- CURRENT BOXES -->
+        <div class="container">
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">CURRENT R</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="cur1">-- A</div>
+
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">CURRENT Y</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="cur2">-- A</div>
+
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">CURRENT B</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="cur3">-- A</div>
+
+            </div>
+        </div>
+
+        <!--Current graph  GRAPH -->
+        <div class="graph-container">
+            <h2 class="heading">Graph Dashboard</h2>
+
+            <div class="graph-header">
+
+                <div class="a">
+
+
+                    <div class="charts">
+                        <!-- <h4>Current</h4> -->
+                        <select id="chartType">
+                            <option value="line" selected>Line Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+
+
+                    </div>
+
+                    <div class="date-filter">
+                        <!-- Date range select -->
+
+                        <select id="dateRange">
+                            <option value="today" selected>Today</option>
+                            <option value="custom">Set Range</option>
+                        </select>
+
+                    </div>
+
+
+                </div>
+            </div>
+            <!-- Custom date picker -->
+            <div id="customDatePicker">
+                <div class="date-row">
+                    <div class="date-box">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+
+                    <div class="date-box">
+                        <label>End Date</label>
+                        <input type="date" id="endDate" disabled>
+                    </div>
+
+                    <button id="applyBtn">Apply</button>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+
+                <canvas class="chart_dimension" id="currentChart"></canvas>
+                <canvas id="currentPieChart" style="display: none;"></canvas>
+            </div>
+        </div>
+
+
+
+    </div>
+
+    <div id="voltageSection">
+        <!-- CURRENT BOXES -->
+        <div class="container">
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">Volatge R</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="vol1">-- V</div>
+
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">Volatge Y</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="vol2">-- V</div>
+
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">Volatge B</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="vol3">-- V</div>
+
+            </div>
+        </div>
+
+        <!--Current graph  GRAPH -->
+        <div class="graph-container">
+            <div class="graph-container11">
+                <h2 class="heading">Graph Dashboard</h2>
+
+                <div class="graph-header">
+
+
+                    <div class="a">
+
+
+                        <div class="charts">
+                            <!-- <h4>Current</h4> -->
+                            <select id="voltageChartType">
+                                <option value="line" selected>Line Chart</option>
+                                <option value="pie">Pie Chart</option>
+                            </select>
+
+
+                        </div>
+
+                        <div class="date-filter">
+                            <!-- Date range select -->
+
+                            <select id="dateRange">
+                                <option value="today" selected>Today</option>
+                                <option value="custom">Set Range</option>
+                            </select>
+
+                            <!-- Custom date picker -->
+                            <div id="customDatePicker">
+                                <div class="date-row">
+                                    <div class="date-box">
+                                        <label>Start Date</label>
+                                        <input type="date" id="startDate">
+                                    </div>
+
+                                    <div class="date-box">
+                                        <label>End Date</label>
+                                        <input type="date" id="endDate" disabled>
+                                    </div>
+
+                                    <button id="applyBtn">Apply</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+                    <canvas class="chart_dimension" id="voltageChart"></canvas>
+                    <canvas style="display: none;" id="voltagePieChart"></canvas>
+                </div>
+
+
+
+
+            </div>
+
+        </div>
+    </div>
+    <div id="powerSection">
+        <!-- CURRENT BOXES -->
+        <div class="container">
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">Power R</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="pow1">-- W</div>
+
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">Power Y</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="pow2">-- W</div>
+
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">Power B</span>
+                    <!-- <img src="../static/img/thunder (2).png" class="current-icon" alt="icon"> -->
+                </div>
+                <div class="ampere" id="pow3">-- W</div>
+
+            </div>
+        </div>
+
+        <!--Current graph  GRAPH -->
+        <div class="graph-container">
+            <h2 class="heading">Graph Dashboard</h2>
+
+            <div class="graph-header">
+
+
+                <div class="a">
+
+
+                    <div class="charts">
+                        <!-- <h4>Current</h4> -->
+                        <select id="powerChartType">
+                            <option value="line" selected>Line Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+
+
+                    </div>
+
+                    <div class="date-filter">
+                        <!-- Date range select -->
+
+                        <select id="dateRange">
+                            <option value="today" selected>Today</option>
+                            <option value="custom">Set Range</option>
+                        </select>
+
+                        <!-- Custom date picker -->
+                        <div id="customDatePicker">
+                            <div class="date-row">
+                                <div class="date-box">
+                                    <label>Start Date</label>
+                                    <input type="date" id="startDate">
+                                </div>
+
+                                <div class="date-box">
+                                    <label>End Date</label>
+                                    <input type="date" id="endDate" disabled>
+                                </div>
+
+                                <button id="applyBtn">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+                <canvas class="chart_dimension" id="powerChart"></canvas>
+                <canvas style="display: none;" id="powerPieChart"></canvas>
+
+            </div>
+
+
+
+        </div>
+    </div>
+
+    <!-- new data's -->
+
+    <!-- Energy -->
+
+    <div id="energySection">
+
+        <!-- ENERGY BOXES -->
+        <div class="container">
+
+            <!-- ENERGY R -->
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">ENERGY R</span>
+                </div>
+                <div class="ampere" id="energy1">-- kWh</div>
+            </div>
+
+            <!-- ENERGY Y -->
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">ENERGY Y</span>
+                </div>
+                <div class="ampere" id="energy2">-- kWh</div>
+            </div>
+
+            <!-- ENERGY B -->
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">ENERGY B</span>
+                </div>
+                <div class="ampere" id="energy3">-- kWh</div>
+            </div>
+
+        </div>
+
+
+        <!-- ENERGY GRAPH -->
+        <div class="graph-container">
+
+            <h2 class="heading">Graph Dashboard</h2>
+
+            <div class="graph-header">
+
+                <div class="a">
+
+                    <div class="charts">
+                        <select id="energyChartType">
+                            <option value="line" selected>Line Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+                    </div>
+
+                    <div class="date-filter">
+
+                        <select id="dateRange">
+                            <option value="today" selected>Today</option>
+                            <option value="custom">Set Range</option>
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Custom Date Picker -->
+            <div id="customDatePicker">
+
+                <div class="date-row">
+
+                    <div class="date-box">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+
+                    <div class="date-box">
+                        <label>End Date</label>
+                        <input type="date" id="endDate" disabled>
+                    </div>
+
+                    <button id="applyBtn">Apply</button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Charts -->
+            <div style="display:flex; justify-content:center; align-items:center;">
+
+                <canvas class="chart_dimension" id="energyChart"></canvas>
+
+                <canvas id="energyPieChart" style="display:none;"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Freqyency -->
+    <div id="frequencySection">
+
+        <!-- FREQUENCY BOXES -->
+        <div class="container">
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">FREQUENCY R</span>
+                </div>
+                <div class="ampere" id="frequency1">-- Hz</div>
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">FREQUENCY Y</span>
+                </div>
+                <div class="ampere" id="frequency2">-- Hz</div>
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">FREQUENCY B</span>
+                </div>
+                <div class="ampere" id="frequency3">-- Hz</div>
+            </div>
+
+        </div>
+
+
+        <!-- FREQUENCY GRAPH -->
+        <div class="graph-container">
+
+            <h2 class="heading"> Graph Dashboard</h2>
+
+            <div class="graph-header">
+
+                <div class="a">
+
+                    <div class="charts">
+                        <select id="frequencyChartType">
+                            <option value="line" selected>Line Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+                    </div>
+
+                    <div class="date-filter">
+
+                        <select id="dateRange">
+                            <option value="today" selected>Today</option>
+                            <option value="custom">Set Range</option>
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Custom Date Picker -->
+            <div id="customDatePicker">
+
+                <div class="date-row">
+
+                    <div class="date-box">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+
+                    <div class="date-box">
+                        <label>End Date</label>
+                        <input type="date" id="endDate" disabled>
+                    </div>
+
+                    <button id="applyBtn">Apply</button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Charts -->
+            <div style="display:flex; justify-content:center; align-items:center;">
+
+                <canvas class="chart_dimension" id="frequencyChart"></canvas>
+
+                <canvas id="frequencyPieChart" style="display:none;"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Power Factor -->
+    <div id="powerFactorSection">
+
+        <!-- POWER FACTOR BOXES -->
+        <div class="container">
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">POWER FACTOR R</span>
+                </div>
+                <div class="ampere" id="pf1">--</div>
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">POWER FACTOR Y</span>
+                </div>
+                <div class="ampere" id="pf2">--</div>
+            </div>
+
+            <div class="box">
+                <div class="card-header">
+                    <span class="current">POWER FACTOR B</span>
+                </div>
+                <div class="ampere" id="pf3">--</div>
+            </div>
+
+        </div>
+
+
+        <!-- POWER FACTOR GRAPH -->
+        <div class="graph-container">
+
+            <h2 class="heading">Graph Dashboard</h2>
+
+            <div class="graph-header">
+
+                <div class="a">
+
+                    <div class="charts">
+                        <select id="pfChartType">
+                            <option value="line" selected>Line Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+                    </div>
+
+                    <div class="date-filter">
+
+                        <select id="dateRange">
+                            <option value="today" selected>Today</option>
+                            <option value="custom">Set Range</option>
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Custom Date Picker -->
+            <div id="customDatePicker">
+
+                <div class="date-row">
+
+                    <div class="date-box">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+
+                    <div class="date-box">
+                        <label>End Date</label>
+                        <input type="date" id="endDate" disabled>
+                    </div>
+
+                    <button id="applyBtn">Apply</button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Charts -->
+            <div style="display:flex; justify-content:center; align-items:center;">
+
+                <canvas class="chart_dimension" id="pfChart"></canvas>
+
+                <canvas id="pfPieChart" style="display:none;"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SOCKET -->
+    <script src="../static/js/socket.io.js"></script>
+    <script src="../static/js/script.js"></script>
+    <script>
+        function ksbOpen(type) {
+            document.getElementById("ksb_" + type + "_popup").style.display = "block";
+        }
+
+        function ksbClose(e, type) {
+            if (e.target.classList.contains("ksb_popup")) {
+                document.getElementById("ksb_" + type + "_popup").style.display = "none";
+            }
+        }
+    </script>
+
+    <script>
+        function ksbUpdate() {
+            let v = document.getElementById("metricSelect").value;
+
+            // hide all
+            document.querySelectorAll(".ksb_card").forEach(b => b.style.display = "none");
+
+            // show selected
+            document.getElementById("ksb_" + v).style.display = "block";
+        }
+
+        // default show
+        ksbUpdate();
+    </script>
+
+
+    <script>
+        const DEVICE_ID = "3Phase862733079332931";
+
+        // ── Page load pe saved values display karo ──────────────────────────────
+        async function loadThresholdDisplays() {
+            try {
+                const res = await fetch(`/get_thresholds/${DEVICE_ID}`);
+                const data = await res.json();
+
+                if (data.cur_min != null) {
+                    document.getElementById("cur_min_display").textContent = data.cur_min;
+                    document.getElementById("cur_max_display").textContent = data.cur_max;
+                }
+                if (data.vol_min != null) {
+                    document.getElementById("vol_min_display").textContent = data.vol_min;
+                    document.getElementById("vol_max_display").textContent = data.vol_max;
+                }
+            } catch (e) { }
+        }
+        loadThresholdDisplays();   // page open hone pe turant chalao
+
+        // ── Open popup + pre-fill current saved values ────────────────────────
+        const _origKsbOpen = ksbOpen;
+        ksbOpen = async function (type) {
+            _origKsbOpen(type);
+            // error clear karo
+            document.getElementById(type === "voltage" ? "vol_error" : "cur_error").textContent = "";
+
+            try {
+                const res = await fetch(`/get_thresholds/${DEVICE_ID}`);
+                const data = await res.json();
+
+                if (type === "current" && data.cur_min != null) {
+                    document.getElementById("cur_min").value = data.cur_min;
+                    document.getElementById("cur_max").value = data.cur_max;
+                }
+                if (type === "voltage" && data.vol_min != null) {
+                    document.getElementById("vol_min").value = data.vol_min;
+                    document.getElementById("vol_max").value = data.vol_max;
+                }
+            } catch (e) { }
+        };
+
+        // ── Save threshold → backend → update display card ───────────────────
+        async function saveThreshold(type) {
+            const isVol = type === "voltage";
+            const minEl = document.getElementById(isVol ? "vol_min" : "cur_min");
+            const maxEl = document.getElementById(isVol ? "vol_max" : "cur_max");
+            const errEl = document.getElementById(isVol ? "vol_error" : "cur_error");
+            const btnEl = document.getElementById(isVol ? "vol_save_btn" : "cur_save_btn");
+
+            const minVal = parseFloat(minEl.value);
+            const maxVal = parseFloat(maxEl.value);
+
+            errEl.textContent = "";
+
+            // Validation
+            if (isNaN(minVal) || isNaN(maxVal)) {
+                errEl.textContent = "⚠ Min aur Max dono daalo."; return;
+            }
+            if (minVal < 0 || maxVal < 0) {
+                errEl.textContent = "⚠ Negative value nahi chalega."; return;
+            }
+            if (minVal >= maxVal) {
+                errEl.textContent = "⚠ Min, Max se chhota hona chahiye."; return;
+            }
+
+            btnEl.disabled = true;
+            btnEl.textContent = "Saving...";
+
+            try {
+                const res = await fetch("/save_threshold", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ device_id: DEVICE_ID, type, min: minVal, max: maxVal })
+                });
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    // Popup band karo
+                    document.getElementById(`ksb_${type}_popup`).style.display = "none";
+
+                    // Card display update karo
+                    if (isVol) {
+                        document.getElementById("vol_min_display").textContent = minVal;
+                        document.getElementById("vol_max_display").textContent = maxVal;
+                    } else {
+                        document.getElementById("cur_min_display").textContent = minVal;
+                        document.getElementById("cur_max_display").textContent = maxVal;
+                    }
+
+                    alert(`✅ ${result.message}`);
+                } else {
+                    errEl.textContent = `⚠ ${result.error}`;
+                }
+            } catch (e) {
+                errEl.textContent = "⚠ Network error. Try again.";
+            } finally {
+                btnEl.disabled = false;
+                btnEl.textContent = "💾 Save";
+            }
+        }
+    </script>
+
+
+
+    <script>
+        // ── Modal open/close ───────────────────────────────────────────────────────
+        function openModal(id) {
+            document.getElementById(id).classList.add("active");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove("active");
+            document.body.style.overflow = "";
+        }
+
+        // Close on overlay click (outside box)
+        document.querySelectorAll(".modal-overlay").forEach(overlay => {
+            overlay.addEventListener("click", function (e) {
+                if (e.target === this) closeModal(this.id);
+            });
+        });
+
+        // Close on Escape key
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                document.querySelectorAll(".modal-overlay.active").forEach(m => {
+                    closeModal(m.id);
+                });
+            }
+        });
+
+        // ── Toast ──────────────────────────────────────────────────────────────────
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById("modalToast");
+            toast.className = `show ${type}`;
+            document.getElementById("toastText").textContent = msg;
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => { toast.className = ""; }, 4000);
+        }
+
+        document.getElementById("schedToggle").addEventListener("change", function () {
+            document.getElementById("schedFields").classList.toggle("open", this.checked);
+        });
+
+        // ── Helpers ────────────────────────────────────────────────────────────────
+        function pad(n) { return String(n).padStart(2, "0"); }
+
+        function getInt(id, min, max, label) {
+            const v = parseInt(document.getElementById(id).value);
+            if (isNaN(v) || v < min || v > max) {
+                showToast(`${label} must be ${min}–${max}`, "error");
+                return null;
+            }
+            return v;
+        }
+
+
+    </script>
+
+    <!-- <script>
+      
+    </script> -->
+
+    <!-- <script>
+
+        const singleMasterSwitch = document.getElementById("singleMasterSwitch");
+
+        // Toggle event → send to server
+        singleMasterSwitch.addEventListener("change", function () {
+            const isOn = this.checked;
+            const intensity = isOn ? 100 : 0;
+            const deviceId = this.dataset.device;   // reads data-device attribute
+
+            console.log("Master Switch Toggled:", deviceId, intensity);
+            socket.emit("handle_on_off", { device: deviceId, intensity });
+        });
+
+        // Server confirmation → update UI if needed
+        socket.on("on_off_response", function (data) {
+            console.log("Server confirmed:", data.message, "| load_status:", data.load_status);
+
+            // Sync switch in case server corrected the state
+            singleMasterSwitch.checked = data.load_status === 1;
+        });
+
+        // Handle errors
+        socket.on("error", function (data) {
+            console.error("Server error:", data.message);
+            // Revert the toggle visually
+            singleMasterSwitch.checked = !singleMasterSwitch.checked;
+        });
+
+    </script>  -->
+
+
+
+
+</body>
+
+</html>

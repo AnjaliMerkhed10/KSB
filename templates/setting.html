@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Settings — {{ deviceID }}</title>
+
+    <style>
+        /* ── Reset ─────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 16px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .device-id {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        /* ── Cards ──────────────────────────────────────── */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 820px;
+        }
+
+        .card {
+            background: #1a1d27;
+            border: 1px solid #2a2d3a;
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .card-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .icon-blue {
+            background: #1e3a5f;
+        }
+
+        .icon-green {
+            background: #1a3a2a;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .card-subtitle {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* ── Form ───────────────────────────────────────── */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-row.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .form-row.one {
+            grid-template-columns: 1fr;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field input[type="number"],
+        .field input[type="text"] {
+            width: 100%;
+            background: #0f1117;
+            border: 1px solid #2a2d3a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field input:focus {
+            border-color: #4a90e2;
+        }
+
+        /* ── Toggle Switch ──────────────────────────────── */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: #0f1117;
+            border-radius: 10px;
+            border: 1px solid #2a2d3a;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .toggle-label span {
+            display: block;
+            font-size: 0.7rem;
+            color: #555;
+            margin-top: 2px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            background: #2a2d3a;
+            border-radius: 26px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 4px;
+            bottom: 4px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .switch input:checked+.slider {
+            background: #22c55e;
+        }
+
+        .switch input:checked+.slider::before {
+            transform: translateX(22px);
+        }
+
+        /* ── Scheduling time fields ─────────────────────── */
+        .sched-fields {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.35s ease, opacity 0.3s ease;
+        }
+
+        .sched-fields.visible {
+            max-height: 300px;
+            opacity: 1;
+        }
+
+        .time-group-label {
+            font-size: 0.7rem;
+            color: #4a90e2;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            margin-top: 4px;
+        }
+
+        /* ── Buttons ─────────────────────────────────────── */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-blue {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-green {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        /* ── Toast ───────────────────────────────────────── */
+        #toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1e2535;
+            border: 1px solid #2a2d3a;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-size: 0.85rem;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: all 0.35s ease;
+            z-index: 999;
+            max-width: 90vw;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #toast.success {
+            border-color: #22c55e;
+        }
+
+        #toast.error {
+            border-color: #ef4444;
+        }
+
+        #toast .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        #toast.success .dot {
+            background: #22c55e;
+        }
+
+        #toast.error .dot {
+            background: #ef4444;
+        }
+
+        /* ── Last set label ──────────────────────────────── */
+        .last-set {
+            margin-top: 14px;
+            font-size: 0.72rem;
+            color: #555;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>⚙ Device Settings</h1>
+    <p class="device-id">Device ID: {{ deviceID }}</p>
+
+    <div class="settings-grid">
+
+        <!-- ── Card 1: Set Time & Date ───────────────────────────────── -->
+        <div class="card">
+
+            <div class="card-header">
+                <div class="card-icon icon-blue">🕐</div>
+                <div>
+                    <div class="card-title">Set Time & Date</div>
+                    <div class="card-subtitle">24-hour format</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="field">
+                    <label>Hour (0–23)</label>
+                    <input type="number" id="td_hour" min="0" max="23" value="{{ saved_hour }}" placeholder="HH">
+                </div>
+                <div class="field">
+                    <label>Minute (0–59)</label>
+                    <input type="number" id="td_minute" min="0" max="59" value="{{ saved_minute }}" placeholder="MM">
+                </div>
+            </div>
+
+            <div class="form-row three">
+                <div class="field">
+                    <label>Day</label>
+                    <input type="number" id="td_day" min="1" max="31" value="{{ saved_day }}" placeholder="DD">
+                </div>
+                <div class="field">
+                    <label>Month</label>
+                    <input type="number" id="td_month" min="1" max="12" value="{{ saved_month }}" placeholder="MM">
+                </div>
+                <div class="field">
+                    <label>Year</label>
+                    <input type="number" id="td_year" min="2000" max="2099" value="{{ saved_year }}" placeholder="YYYY">
+                </div>
+            </div>
+
+            <button class="btn btn-blue" id="btnSetTime">
+                🕐 Set Time & Date
+            </button>
+
+            <div class="last-set" id="timeLastSet">
+                {% if time_set_at != "N/A" %}
+                Last set: {{ time_set_at }}
+                {% else %}
+                Not set yet
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- ── Card 2: Scheduling ─────────────────────────────────────── -->
+        <div class="card">
+
+            <div class="card-header">
+                <div class="card-icon icon-green">📅</div>
+                <div>
+                    <div class="card-title">Auto Scheduling</div>
+                    <div class="card-subtitle">24-hour format</div>
+                </div>
+            </div>
+
+            <!-- Enable/Disable toggle -->
+            <div class="toggle-row">
+                <div class="toggle-label">
+                    Enable Scheduling
+                    <span>Auto ON/OFF the pump</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="schedToggle" {{ 'checked' if sched_enabled==1 else '' }}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- Time fields (shown only when toggle is ON) -->
+            <div class="sched-fields {{ 'visible' if sched_enabled == 1 else '' }}" id="schedFields">
+
+                <div class="time-group-label">🟢 Turn ON Time</div>
+                <div class="form-row">
+                    <div class="field">
+                        <label>ON Hour (0–23)</label>
+                        <input type="number" id="on_hour" min="0" max="23" value="{{ sched_on_hour }}" placeholder="HH">
+                    </div>
+                    <div class="field">
+                        <label>ON Minute (0–59)</label>
+                        <input type="number" id="on_minute" min="0" max="59" value="{{ sched_on_minute }}"
+                            placeholder="MM">
+                    </div>
+                </div>
+
+                <div class="time-group-label">🔴 Turn OFF Time</div>
+                <div class="form-row">
+                    <div class="field">
+                        <label>OFF Hour (0–23)</label>
+                        <input type="number" id="off_hour" min="0" max="23" value="{{ sched_off_hour }}"
+                            placeholder="HH">
+                    </div>
+                    <div class="field">
+                        <label>OFF Minute (0–59)</label>
+                        <input type="number" id="off_minute" min="0" max="59" value="{{ sched_off_minute }}"
+                            placeholder="MM">
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="btn btn-green" id="btnSetSchedule">
+                📅 Save Scheduling
+            </button>
+
+            <div class="last-set" id="schedLastSet">
+                {% if sched_set_at != "N/A" %}
+                Last set: {{ sched_set_at }}
+                {% if sched_enabled == 1 %}
+                | ON {{ "%02d"|format(sched_on_hour) }}:{{ "%02d"|format(sched_on_minute) }}
+                OFF {{ "%02d"|format(sched_off_hour) }}:{{ "%02d"|format(sched_off_minute) }}
+                {% else %}
+                | Disabled
+                {% endif %}
+                {% else %}
+                Not set yet
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div><!-- /settings-grid -->
+
+    <!-- ── Toast notification ──────────────────────────────────────────── -->
+    <div id="toast">
+        <div class="dot"></div>
+        <span id="toastMsg">Message</span>
+    </div>
+
+
+    <!-- ── Scripts ─────────────────────────────────────────────────────── -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+
+    <script>
+        const socket = io();
+        const deviceId = "{{ deviceID }}";
+
+        // ── Toast helper ──────────────────────────────────────────────────
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById("toast");
+            const toastMsg = document.getElementById("toastMsg");
+
+            toast.className = `show ${type}`;
+            toastMsg.textContent = msg;
+
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => {
+                toast.className = "";
+            }, 4000);
+        }
+
+        // ── Pad helper ────────────────────────────────────────────────────
+        function pad(n) { return String(n).padStart(2, "0"); }
+
+        // ── Get + validate integer from input ─────────────────────────────
+        function getInt(id, min, max, label) {
+            const val = parseInt(document.getElementById(id).value);
+            if (isNaN(val) || val < min || val > max) {
+                showToast(`${label} must be ${min}–${max}`, "error");
+                return null;
+            }
+            return val;
+        }
+
+
+        // ─────────────────────────────────────────────────────────────────
+        // SET TIME & DATE
+        // ─────────────────────────────────────────────────────────────────
+        document.getElementById("btnSetTime").addEventListener("click", function () {
+
+            const hour = getInt("td_hour", 0, 23, "Hour");
+            const minute = getInt("td_minute", 0, 59, "Minute");
+            const day = getInt("td_day", 1, 31, "Day");
+            const month = getInt("td_month", 1, 12, "Month");
+            const year = getInt("td_year", 2000, 2099, "Year");
+
+            if (hour === null || minute === null || day === null ||
+                month === null || year === null) return;
+
+            this.disabled = true;
+            this.textContent = "⏳ Sending…";
+
+            console.log(`🕐 Sending Time → ${hour}:${minute} | ${day}/${month}/${year}`);
+
+            socket.emit("set_time_date", {
+                device: deviceId,
+                hour, minute, day, month, year
+            });
+        });
+
+        // Server confirmed time set
+        socket.on("set_time_response", function (data) {
+            console.log("✅ Time Response:", data.message);
+
+            showToast("✅ " + data.message, "success");
+
+            document.getElementById("timeLastSet").textContent =
+                `Last set: just now → ${pad(data.hour)}:${pad(data.minute)}` +
+                ` | ${pad(data.day)}/${pad(data.month)}/${data.year}`;
+
+            const btn = document.getElementById("btnSetTime");
+            btn.disabled = false;
+            btn.textContent = "🕐 Set Time & Date";
+        });
+
+        socket.on("set_time_error", function (data) {
+            console.error("❌ Time Error:", data.message);
+            showToast("❌ " + data.message, "error");
+
+            const btn = document.getElementById("btnSetTime");
+            btn.disabled = false;
+            btn.textContent = "🕐 Set Time & Date";
+        });
+
+
+        // ─────────────────────────────────────────────────────────────────
+        // SCHEDULING TOGGLE — show/hide fields
+        // ─────────────────────────────────────────────────────────────────
+        const schedToggle = document.getElementById("schedToggle");
+        const schedFields = document.getElementById("schedFields");
+
+        schedToggle.addEventListener("change", function () {
+            if (this.checked) {
+                schedFields.classList.add("visible");
+            } else {
+                schedFields.classList.remove("visible");
+            }
+        });
+
+
+        // ─────────────────────────────────────────────────────────────────
+        // SAVE SCHEDULING
+        // ─────────────────────────────────────────────────────────────────
+        document.getElementById("btnSetSchedule").addEventListener("click", function () {
+
+            const isEnabled = schedToggle.checked ? 1 : 0;
+
+            let payload = { device: deviceId, is_enabled: isEnabled };
+
+            if (isEnabled === 1) {
+                const on_hour = getInt("on_hour", 0, 23, "ON Hour");
+                const on_minute = getInt("on_minute", 0, 59, "ON Minute");
+                const off_hour = getInt("off_hour", 0, 23, "OFF Hour");
+                const off_minute = getInt("off_minute", 0, 59, "OFF Minute");
+
+                if (on_hour === null || on_minute === null ||
+                    off_hour === null || off_minute === null) return;
+
+                payload = { ...payload, on_hour, on_minute, off_hour, off_minute };
+            }
+
+            this.disabled = true;
+            this.textContent = "⏳ Sending…";
+
+            console.log("📅 Sending Scheduling →", payload);
+
+            socket.emit("set_scheduling", payload);
+        });
+
+        // Server confirmed scheduling
+        socket.on("scheduling_response", function (data) {
+            console.log("✅ Scheduling Response:", data.message);
+
+            showToast("✅ " + data.message, "success");
+
+            const lastSet = document.getElementById("schedLastSet");
+
+            if (data.is_enabled) {
+                lastSet.textContent =
+                    `Last set: just now | ON ${pad(data.on_hour)}:${pad(data.on_minute)}` +
+                    ` → OFF ${pad(data.off_hour)}:${pad(data.off_minute)}`;
+            } else {
+                lastSet.textContent = "Last set: just now | Disabled";
+            }
+
+            const btn = document.getElementById("btnSetSchedule");
+            btn.disabled = false;
+            btn.textContent = "📅 Save Scheduling";
+        });
+
+        socket.on("scheduling_error", function (data) {
+            console.error("❌ Scheduling Error:", data.message);
+            showToast("❌ " + data.message, "error");
+
+            const btn = document.getElementById("btnSetSchedule");
+            btn.disabled = false;
+            btn.textContent = "📅 Save Scheduling";
+        });
+
+    </script>
+
+</body>
+
+</html>
