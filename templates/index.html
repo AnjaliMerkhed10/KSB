@@ -483,9 +483,7 @@
 
 <body>
     <div class="header">
-        <div class="pump-img">
-            <img src="../static/img/ksb-borewell-submersible-pump.jpg" width="100" height="50">
-        </div>
+
         <h2 class="heading" style="color: #2a2a2a;">
             Main Dashboard
         </h2>
@@ -570,7 +568,7 @@
 
             <div class="card">
                 <div style="font-size:32px;">
-                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                    <img src="../static/img/ACTIVE POWER.png" alt="" width="40px" height="40px">
                 </div>
                 <div>
                     <div><strong>ACTIVE POWER</strong></div>
@@ -582,7 +580,7 @@
             </div>
             <div class="card">
                 <div style="font-size:32px;">
-                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                    <img src="../static/img/NUMBER OF STARTS.png" alt="" width="40px" height="40px">
                 </div>
                 <div>
                     <div><strong>NUMBER OF STARTS</strong></div>
@@ -594,7 +592,7 @@
             </div>
             <div class="card">
                 <div style="font-size:32px;">
-                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                    <img src="../static/img/APPERENT ENERGY.png" alt="" width="40px" height="40px">
                 </div>
                 <div>
                     <div><strong>APPERENT ENERGY</strong></div>
@@ -607,7 +605,7 @@
             <!-- Reactive Power -->
             <div class="card">
                 <div style="font-size:32px;">
-                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                    <img src="../static/img/REACTIVE POWER.png" alt="" width="40px" height="40px">
                 </div>
                 <div>
                     <div><strong>REACTIVE POWER</strong></div>
@@ -621,7 +619,7 @@
             <!-- Apparent Power -->
             <div class="card">
                 <div style="font-size:32px;">
-                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                    <img src="../static/img/APPARENT POWER.png" alt="" width="40px" height="40px">
                 </div>
                 <div>
                     <div><strong>APPARENT POWER</strong></div>
@@ -636,7 +634,7 @@
             <!-- Power Factor -->
             <div class="card">
                 <div style="font-size:32px;">
-                    <img src="../static/img/thunder (2).png" alt="" width="40px" height="40px">
+                    <img src="../static/img/POWER FACTOR.png" alt="" width="40px" height="40px">
                 </div>
                 <div>
                     <div><strong>POWER FACTOR</strong></div>
@@ -647,16 +645,7 @@
             </div>
 
             <!-- Pump -->
-            <div class="card">
-                <div>
-                    <div><strong>PUMP ON/OFF</strong></div>
-                    <label class="switch" style="margin-top: 10px;">
-                        <input type="checkbox" id="singleMasterSwitch" data-device="{{ deviceID }}" {{ 'checked' if
-                            load_status==1 else '' }}>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
+
 
 
         </div>
@@ -787,7 +776,18 @@
         <span id="toastText">Message</span>
     </div>
 
-    <div class="wrapper" style="margin-top: 10px;">
+    <div class="wrapper" >
+        <div class="pump_on_off"
+            >
+            <div style="display: flex;flex-direction: row;flex-wrap: wrap;align-items: center;">
+                <div><strong>PUMP ON/OFF</strong></div>
+                <label class="switch">
+                    <input type="checkbox" id="singleMasterSwitch" data-device="{{ deviceID }}" {{ 'checked' if
+                        load_status==1 else '' }}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
         <div class="excel">
             <!-- Change your existing buttons to these -->
             <button onclick="openModal('modalTimeDate')">Set Time&amp;Date</button>
@@ -816,19 +816,20 @@
 
             </div>
 
-        </div>
-        <div class="dabba">
-            <select id="metricSelect" onchange="ksbUpdate()">
-                <option value="current" selected>Current</option>
-                <option value="voltage">Voltage</option>
-                <option value="power">Power</option>
-                <option value="energy">Energy</option>
-                <option value="frequency">Frequency</option>
-                <option value="power_factor">Power Factor</option>
-            </select>
+            <div class="dabba">
+                <select id="metricSelect" onchange="ksbUpdate()">
+                    <option value="current" selected>Current</option>
+                    <option value="voltage">Voltage</option>
+                    <option value="power">Power</option>
+                    <option value="energy">Energy</option>
+                    <option value="frequency">Frequency</option>
+                    <option value="power_factor">Power Factor</option>
+                </select>
 
 
+            </div>
         </div>
+
     </div>
 
     <!-- ── Current Popup ── -->

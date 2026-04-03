@@ -3,6 +3,8 @@ body {
     padding: 20px;
     font-family: 'DM Sans', sans-serif;
     background: #ffffff;
+    /* margin: 0;
+    padding: 0; */
 }
 
 .container {
@@ -32,12 +34,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 20px;
     background: #ffffff;
     /* border-radius: 12px; */
-    /* box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     margin-bottom: 20px;
     color: #28292e;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 8px;
 }
 
 strong {
@@ -48,7 +52,6 @@ strong {
 h2.heading {
     color: #28292e;
     text-transform: uppercase;
-    margin-left: 10px;
 }
 
 .heading {
@@ -360,11 +363,13 @@ h2.heading {
 .wrapper {
     width: 100%;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     /* 🔥 RIGHT SIDE */
-    margin-bottom: 15px;
+    margin-bottom: 25px;
     gap: 10px;
     flex-wrap: wrap;
+    margin-top: 30px;
 }
 
 .excel button {
@@ -531,18 +536,35 @@ input:checked+.slider:before {
     border-radius: 10px;
 }
 
+.pump_on_off {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: 0.3s;
+    cursor: pointer;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 300px;
+}
 
 @media (max-width: 450px) {
 
+    .pump_on_off {
+        /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
+        border: 2px solid #d0d7de;
+    }
+
+}
+
+@media (max-width: 550px) {
+
 
     .header {
-        padding: 0px;
-        margin-bottom: 0;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
-    h2.heading {
-        margin-left: 10px;
-    }
+
 }
 
 .card3 {
@@ -636,7 +658,6 @@ input:checked+.slider:before {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    padding: 20px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -666,7 +687,6 @@ input:checked+.slider:before {
 }
 
 .download-dropdown {
-    position: absolute;
     top: 45px;
     left: 0;
     background: white;
